@@ -17,7 +17,7 @@ live_loop :kick do
   sleep 1
 end
 
-live_loop :kick do
+live_loop :snare do
   sleep 1
   sample :drum_snare_hard
   sleep 1
