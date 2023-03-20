@@ -11,7 +11,7 @@ ampKick = 1.5
 ampHat = 1
 ampBass = 1.5
 ampArp = 1
-ampBlade = 1
+ampPluck = 1
 
 # Transpose the sequence (use 0, 5, 7 for example)
 transpose = 0
@@ -68,10 +68,10 @@ end
 
 # Semi-random synth sequence from a set of notes
 in_thread do
-  use_synth :fm
   notes = [ :c3, :g4, :g3, :d3, :c4, :g3 ]
   live_loop :bass do
     sync :sixteens
+    use_synth :fm
     play notes.choose + transpose, release:0.2, amp:ampBass
   end
 end
@@ -87,9 +87,8 @@ end
 
 # Programmed synth sequence
 with_fx :reverb do
-  use_synth :blade
   notes = [ :c3, :g4, :g3, :d3, :c4, :g3, :c2, :g3, :c3, :d3 ]
-  live_loop :blade do
+  live_loop :pluck do
     if fast
     then
       sync :sixteens
@@ -98,6 +97,7 @@ with_fx :reverb do
     end
     
     # Use some randomness for the release
-    play notes.tick + transpose, release:rrand(0.1,0.8), amp:ampBlade
+    use_synth :pluck
+    play notes.tick + transpose, release:rrand(0.1,0.8), amp:ampPluck
   end
 end
