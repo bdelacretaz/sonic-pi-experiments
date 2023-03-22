@@ -1,6 +1,7 @@
 # This Sonic Pi example demonstrates various
 # ways to program melodic or ryhthmic sequences
-# Meant to be played at tempo 120
+
+use_bpm 120
 
 # LIVE CONTROL SECTION
 # Change these variables and use run to update
