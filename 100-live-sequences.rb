@@ -17,8 +17,8 @@ ampPluck = 1
 # Transpose the sequence (use 0, 5, 7 for example)
 transpose = 0
 
-# Fast/slow blade sequence
-fast = false
+# Fast (1) /slow (0) blade sequence
+fast = 1
 
 # TIMING LOOPS SECTION
 live_loop :sixteens do
@@ -90,7 +90,7 @@ end
 with_fx :reverb do
   notes = [ :c3, :g4, :g3, :d3, :c4, :g3, :c2, :g3, :c3, :d3 ]
   live_loop :pluck do
-    if fast
+    if fast == 1
     then
       sync :sixteens
     else
