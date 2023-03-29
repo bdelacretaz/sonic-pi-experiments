@@ -1,61 +1,15 @@
 /*
-Granular synth using sin and saw oscillators and noise as input
-
-Meant to be used in Sonic Pi:
-
-load_synthdef "/tmp/synthdefs/grainosc.scsyndef"
-use_bpm 120
-use_synth :grainosc
-rate = [100, 150, 200, 300, 400, 600, 800]
-amp = 1
-
-with_fx :reverb, room:0.2 do
-  live_loop "softgrain" do
-    freq = rate.choose / 4
-    play 0,
-      freq: freq,
-      amp: 0.5,
-      peak: 1,
-      release: rrand(0.2, 0.3),
-      cutoff: rrand(800,1250),
-      res: rrand(0.2, 0.4),
-      sinamp:rrand(1,2),
-      sawamp:rrand(0,3),
-      graindur:rrand(0.01,0.05),
-      pan:rrand(-0.9,0.9)
-    sleep 0.25
-  end
-end
-
-live_loop "bass" do
-  freq = rate.choose / 4
-  play 0,
-    freq: freq,
-    peak: rrand(0.5,1),
-    release: rrand(0.1,0.5),
-    graindur:rrand(0.02,0.2),
-    sawamp:rrand(0.1,1.5),
-    sinamp:rrand(0.2,2),
-    cutoff:rrand(220,880),
-    res:rrand(0.1,0.2),
-    pan:rrand(-0.5,0.5),
-    amp:1
-  play 0,
-    freq: freq / 2,
-    release:0.2,
-    cutoff:240,
-    res:0.5,
-    graindur:rrand(0.1,0.3)
-  sleep 0.25
-end
+Granular synth using sin and saw oscillators
+and noise as input.
+Meant to be used in Sonic Pi, see the example
+at the end of this file.
 */
 
 (
-(
-SynthDef(\grainosc, {
+var synth = SynthDef(\grainosc, {
 	|
 	amp = 1,
-	freq = 440,
+	note = 60,
 	sinamp = 1,
 	sawamp = 1,
 	noiseamp = 0,
@@ -71,6 +25,7 @@ SynthDef(\grainosc, {
 	r = 1.0,
 	out_bus = 0
 	|
+	var freq = note.midicps;
 	var env = Env.perc(attack, release, peak, envCurve);
 	var mix = Mix.new([
 		SinOsc.ar(freq) * sinamp,
@@ -90,13 +45,14 @@ SynthDef(\grainosc, {
 			amp * EnvGen.kr(env, doneAction: 2);
 		)
 	);
-})).writeDefFile("/tmp/synthdefs/")
-//})).send(s);
+});
+synth.add;
+synth.writeDefFile("/tmp/synthdefs/")
 )
 
 // Local testing (requires the ".send above)
 x.postln
-x = Synth(\grainosc, [\attack, 0, \release, 10, \rate, 1200, \graindur, 0.05, \freq, 220, \cutoff, 225, \res,0.04, \pan, 0,\amp, 1]);
+x = Synth(\grainosc, [\attack, 0, \release, 1, \rate, 1200, \graindur, 0.05, \note, 62, \cutoff, 225, \res,0.04, \pan, 0,\amp, 1]);
 x.free;
 x.set(\pan, -1);
 x.set(\pan, 1);
@@ -119,3 +75,50 @@ x.free
 
 Env.adsr(0.02, 0.2, 0.25, 1, 1, -4).test(2).plot;
 Env.perc(0.01, 1.0, 1.0, -4).test(2).plot;
+
+/* Sonic Pi example
+load_synthdef "/tmp/synthdefs/grainosc.scsyndef"
+use_bpm 120
+use_synth :grainosc
+notes = [:g3, :c3, :c4, :g4]
+amp = 0.5
+
+with_fx :reverb, room:0.2 do
+  live_loop "softgrain" do
+    play notes.choose,
+      amp: 0.5,
+      peak: 1,
+      release: rrand(0.5, 0.7),
+      cutoff: rrand(800,1250),
+      res: rrand(0.1, 0.2),
+      sinamp:rrand(1,30),
+      sawamp:rrand(0,3),
+      noiseamp:rrand(0.1,0.2),
+      graindur:rrand(0.1,0.05),
+      pan:rrand(-0.9,0.9),
+      amp:amp
+    sleep 0.25
+  end
+end
+
+live_loop "bass" do
+  note = notes.choose - 12
+  play note,
+    peak: rrand(0.5,1),
+    release: rrand(0.1,0.5),
+    graindur:rrand(0.02,0.2),
+    sawamp:rrand(0.1,1.5),
+    sinamp:rrand(0.2,2),
+    cutoff:rrand(220,880),
+    res:rrand(0.1,0.2),
+    pan:rrand(-0.5,0.5),
+    amp:amp
+  play note - 12,
+    release:0.2,
+    cutoff:240,
+    res:0.5,
+    graindur:rrand(0.1,0.3),
+    amp:amp
+  sleep 0.25
+end
+*/
