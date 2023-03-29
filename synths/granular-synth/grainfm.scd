@@ -1,7 +1,11 @@
 /*
 Granular synth using the GrainFM UGen.
+
 Meant to be used in Sonic Pi, see the example
 at the end of this file.
+
+Audio examples at
+https://kdrive.infomaniak.com/app/share/117216/2aa82066-b6dc-4699-88f3-ffe322d486ae
 */
 
 (
