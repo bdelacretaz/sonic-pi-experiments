@@ -31,15 +31,15 @@ var synth = SynthDef(\grainosc, {
 	|
 	var freq = note.midicps;
 	var env = Env.perc(attack, release, peak, envCurve);
-	var mix = Mix.new([
+	var mix = Limiter.ar(Mix.new([
 		SinOsc.ar(freq) * sinamp,
 		Saw.ar(freq) * sawamp,
 		PinkNoise.ar(noiseamp)
-	]);
+	]));
 	var trigger = Impulse.kr(trigrate);
 	var grained = GrainIn.ar(1, trigger, graindur, mix);
 	Out.ar(out_bus,
-		Pan2.ar(
+		Limiter.ar(Pan2.ar(
 			RLPF.ar(
 				grained,
 				cutoff,
@@ -47,38 +47,32 @@ var synth = SynthDef(\grainosc, {
 			),
 			pan,
 			amp * EnvGen.kr(env, doneAction: 2);
-		)
+		))
 	);
 });
 synth.add;
 synth.writeDefFile("/tmp/synthdefs/")
 )
 
-// Local testing (requires the ".send above)
+// Local testing
 x.postln
-x = Synth(\grainosc, [\attack, 0, \release, 1, \rate, 1200, \graindur, 0.05, \note, 62, \cutoff, 225, \res,0.04, \pan, 0,\amp, 1]);
-x.free;
+x = Synth(\grainosc, [\attack, 0, \release, 10, \rate, 1200, \graindur, 0.01, \note, 62, \cutoff, 825, \res,0.01, \pan, 0,\amp, 1]);
 x.set(\pan, -1);
 x.set(\pan, 1);
 x.set(\noiseamp, 1, \sinamp, 0, \sawamp, 0);
-x.set(\amp, 2);
+x.set(\noiseamp, 0, \sinamp, 1, \sawamp, 0);
+x.set(\noiseamp, 0, \sinamp, 0, \sawamp, 1);
+x.set(\amp, 25);
 x.set(\amp, 1);
-x.set(\sinamp, 0);
-x.set(\sinamp, 0);
-x.set(\sawamp, 0);
-x.set(\pulseamp, 2);
 x.set(\cutoff, 880);
 x.set(\cutoff, 220);
-x.set(\res, 0.5);
+x.set(\res, 0.01);
 x.set(\trigrate, 2);
 x.set(\graindur, 0.01);
-x.set(\freq, 220);
-x.set(\freq, 440);
-x.set(\freq, 880);
+x.set(\note, 50);
+x.set(\note, 62);
+x.set(\note, 74);
 x.free
-
-Env.adsr(0.02, 0.2, 0.25, 1, 1, -4).test(2).plot;
-Env.perc(0.01, 1.0, 1.0, -4).test(2).plot;
 
 /* Sonic Pi example
 load_synthdef "/tmp/synthdefs/grainosc.scsyndef"
@@ -92,12 +86,12 @@ with_fx :reverb, room:0.2 do
     play notes.choose,
       amp: 0.5,
       peak: 1,
-      release: rrand(0.5, 0.7),
-      cutoff: rrand(800,1250),
-      res: rrand(0.1, 0.2),
+      release: rrand(0.2, 0.5),
+      cutoff: rrand(400,1250),
+      res: rrand(0.1, 0.002),
       sinamp:rrand(1,30),
       sawamp:rrand(0,3),
-      noiseamp:rrand(0.1,0.2),
+      noiseamp:rrand(0.1,2.8),
       graindur:rrand(0.1,0.05),
       pan:rrand(-0.9,0.9),
       amp:amp
