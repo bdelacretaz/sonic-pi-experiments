@@ -16,7 +16,10 @@ var synth = SynthDef(\grainosc, {
 	note = 60,
 	sinamp = 1,
 	sawamp = 1,
+	pulseamp = 0,
+	pw = 0.5,
 	noiseamp = 0,
+	detune = 0.1,
 	graindur = 0.5,
 	trigrate = 20,
 	cutoff = 1200,
@@ -33,7 +36,8 @@ var synth = SynthDef(\grainosc, {
 	var env = Env.perc(attack, release, peak, envCurve);
 	var mix = Limiter.ar(Mix.new([
 		SinOsc.ar(freq) * sinamp,
-		Saw.ar(freq) * sawamp,
+		Saw.ar(freq * (1+detune)) * sawamp,
+		Pulse.ar(freq * (1-detune), pw, pulseamp),
 		PinkNoise.ar(noiseamp)
 	]));
 	var trigger = Impulse.kr(trigrate);
@@ -79,44 +83,54 @@ load_synthdef "/tmp/synthdefs/grainosc.scsyndef"
 use_bpm 120
 use_synth :grainosc
 notes = [:g3, :c3, :c4, :g4]
-amp = 0.5
 
 with_fx :reverb, room:0.2 do
   live_loop "softgrain" do
+    #stop
     play notes.choose,
-      amp: 0.5,
+      amp: 2.5,
       peak: 1,
-      release: rrand(0.2, 0.5),
+      release: rrand(0.3, 0.5),
       cutoff: rrand(400,1250),
       res: rrand(0.1, 0.002),
       sinamp:rrand(1,30),
       sawamp:rrand(0,3),
+      pulseamp:rrand(2,4),
+      pw:0.2,
       noiseamp:rrand(0.1,2.8),
-      graindur:rrand(0.1,0.05),
-      pan:rrand(-0.9,0.9),
-      amp:amp
+      graindur:rrand(0.1,0.03),
+      pan:rrand(-0.9,0.9)
     sleep 0.25
   end
 end
 
-live_loop "bass" do
-  note = notes.choose - 12
-  play note,
-    peak: rrand(0.5,1),
-    release: rrand(0.1,0.5),
-    graindur:rrand(0.02,0.2),
-    sawamp:rrand(0.1,1.5),
-    sinamp:rrand(0.2,2),
-    cutoff:rrand(220,880),
-    res:rrand(0.1,0.2),
-    pan:rrand(-0.5,0.5),
-    amp:amp
-  play note - 12,
-    release:0.2,
-    cutoff:240,
-    res:0.5,
-    graindur:rrand(0.1,0.3),
-    amp:amp
-  sleep 0.25
+with_fx :echo, decay:0.1 do
+  live_loop "bass" do
+    #stop
+    note = notes.choose - 12
+    play note,
+      peak: rrand(0.5,2),
+      release: rrand(0.2,0.3),
+      graindur:rrand(0.02,0.3),
+      sawamp:0, #rrand(0.1,1.5),
+      sinamp:0, #rrand(0.2,2),
+      pulseamp:rrand(0.2,1),
+      pw:rrand(0.1,0.8),
+      detune:rrand(0.005, 0.01),
+      noiseamp:rrand(0.1,0.5),
+      attack:rrand(0.1,0.2),
+      cutoff:rrand(220,880),
+      res:rrand(0.1,0.05),
+      pan:rrand(-0.7,0.7),
+      amp:0.5
+    play note - 12,
+      release:rrand(0.2,0.4),
+      cutoff:rrand(240,430),
+      res:0.1,
+      graindur:rrand(0.02,0.2),
+      amp:1
+    sleep 0.25
+  end
 end
+
 */
