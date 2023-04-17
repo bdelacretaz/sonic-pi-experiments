@@ -16,13 +16,17 @@ var synth = SynthDef(\grainfm, {
 	modfreq = 200,
 	modratio = 1,
 	modindex = 10,
+	filtertype = 0,
 	cutoff = 1200,
 	res = 1,
 	pan = 0,
 	out_bus = 0
 	|
 	var carfreq = note.midicps;
-	var snd;
+	var snd, rq, mfenv;
+
+	// res < 1 combined with high cutoff crashes SC in my tests
+	res = res.max(1).min(1000);
 
 	// If trigger rate is not specified, use carrier frequency
 	trigrate = Select.kr(trigrate > 0, [ carfreq, trigrate ]);
@@ -33,7 +37,12 @@ var synth = SynthDef(\grainfm, {
 	// GrainFM, limit, filter and pan
 	snd = GrainFM.ar(1, Impulse.kr(trigrate), dur:graindur, carfreq:carfreq, modfreq:modfreq, index:modindex);
 	snd = Limiter.ar(snd);
-	snd = RLPF.ar(snd, cutoff, res);
+
+	// Optional RLPF or MoogFF filter
+	rq = res.max(0.1).reciprocal;
+	snd = Select.ar(filtertype > 0, [ MoogFF.ar(snd, freq:cutoff, gain:res) , RLPF.ar(snd, freq:cutoff, rq:rq )]);
+
+	// Pan and out
 	snd = Pan2.ar(snd, pan, Line.kr(2, 0, release, amp, doneAction: 2));
 	Out.ar(out_bus, snd);
 });
@@ -60,9 +69,9 @@ use_bpm 120
 use_synth :grainfm
 notes = [:g4, :c4, :c5, :g5, :g3]
 
-# turn the volume down before
-# going over 2 on this one!
-bright = 0.4
+bright = 1
+filtertype = 0
+res = 1
 
 with_fx :reverb, room:0.2 do
   live_loop "notes" do
@@ -71,8 +80,9 @@ with_fx :reverb, room:0.2 do
     freq = midi_to_hz(note) * 5
     play note-24,
       release:rrand(0.1,0.4),graindur:rrand(0.01,0.04),
+      filtertype: filtertype,
       trigrate:322,modfreq:223,
-      cutoff:freq * bright * rrand(0.1,0.3),res:rrand(0.3,0.5),
+      cutoff:freq * bright * rrand(0.1,0.3),res:res * rrand(1,3),
       pan: rrand(-0.9,0.9),
       amp:0.4
     sleep [0.25,0.25,0.5].choose
@@ -85,9 +95,10 @@ with_fx :flanger do
     freq = midi_to_hz(note) * 2
     #stop
     play [7,9,11].choose,
+      filtertype: filtertype,
       release:rrand(0.2,0.4),graindur:rrand(0.01,0.02),
       trigrate:434,modratio:rrand(20,30),
-      cutoff:freq * bright * rrand(0.4,0.18),res:0.8,
+      cutoff:freq * bright * rrand(0.4,0.18),res: res * 0.8,
       pan: rrand(-0.8,0.8),
       amp:rrand(2,3)
     sleep 0.25
@@ -100,9 +111,10 @@ with_fx :echo, decay:0.1 do
     #stop
     # TODO without +0, doesn't play the right note
     play note+0,
+      filtertype: filtertype,
       modratio:rrand(5.9,24),
-      graindur:rrand(0.01,0.04),
-      release:rrand(0.05,0.15),
+      graindur:rrand(0.001,0.04),
+      release:rrand(0.05,0.25),
       pan:rrand(-0.3,0.3),
       amp:0.7
     sleep [0.25,0.5].choose
