@@ -5,9 +5,8 @@ var synth = SynthDef(\playtest, {
 	note = 60,
 	out_bus = 0
 	|
-	var snd = Pan2.ar(SinOsc.ar(note.midicps));
+	var snd = Pan2.ar(SinOsc.ar(note.midicps), level: Line.kr(2, 0, 0.2, 1, doneAction: 2));
 	note.poll(2);
-	DetectSilence.ar(snd, doneAction:Done.freeSelf);
 	Out.ar(out_bus, snd);
 });
 
